@@ -4,7 +4,7 @@
   "description": "A Base DApp that turns Polymarket markets into forecasting competitions for any group",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "hardhat test"
   },
   "repository": {
     "type": "git",
@@ -13,16 +13,19 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/mschristophers/prediction-league/issues"
   },
   "homepage": "https://github.com/mschristophers/prediction-league#readme",
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/mocha": "^10.0.0",
     "@types/node": "^22.19.1",
-    "chai": "^6.2.1",
+    "chai": "^4.3.10",
     "ethers": "^6.16.0",
-    "hardhat": "^3.0.17",
+    "hardhat": "^2.22.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.0"
   },

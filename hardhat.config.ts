@@ -1,16 +1,18 @@
-import { defineConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 import "dotenv/config";
+import { HardhatUserConfig } from "hardhat/config";
 
-export default defineConfig({
+const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.28",
   },
   networks: {
     baseSepolia: {
-      type: "http",
       url: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
       chainId: 84532,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
-});
+};
+
+export default config;
