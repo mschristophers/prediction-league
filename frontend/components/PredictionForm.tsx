@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Hex } from "viem";
 import { predictionLeagueConfig } from "../lib/contract";
@@ -13,13 +14,14 @@ interface Props {
 export function PredictionForm({ leagueId, conditionId }: Props) {
   const [forecast, setForecast] = useState(60);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: confirming, isSuccess } = useWaitForTransactionReceipt({
     hash
   });
 
-  const disabled = isPending || confirming;
+  const disabled = isPending || confirming || isSuccess;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,11 +77,31 @@ export function PredictionForm({ leagueId, conditionId }: Props) {
         className="w-full py-2 rounded bg-emerald-500 text-slate-900 font-semibold disabled:opacity-60"
       >
         {isPending || confirming
-          ? "Submitting..."
+          ? "Submitting forecast..."
           : isSuccess
-          ? "Submitted!"
+          ? "Forecast stored on-chain"
           : "Submit forecast"}
       </button>
+
+      {isSuccess && hash && (
+        <div className="space-y-2">
+          <a
+            href={`https://sepolia.basescan.org/tx/${hash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full block py-2 rounded border border-slate-700 text-slate-100 text-sm font-medium text-center hover:bg-slate-800"
+          >
+            View transaction on BaseScan
+          </a>
+          <button
+            type="button"
+            className="w-full py-2 rounded border border-slate-700 text-slate-100 text-sm font-medium hover:bg-slate-800"
+            onClick={() => router.push(`/leagues/${leagueId.toString()}`)}
+          >
+            View league score
+          </button>
+        </div>
+      )}
     </form>
   );
 }

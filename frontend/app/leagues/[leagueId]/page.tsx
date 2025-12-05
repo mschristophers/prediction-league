@@ -5,10 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { predictionLeagueConfig } from "../../../lib/contract";
 import { LeagueCard } from "../../../components/LeagueCard";
-import {
-  fetchActiveMarkets,
-  GammaMarket,
-} from "../../../lib/polymarket";
+import { GammaMarket } from "../../../lib/polymarket";
 import { MarketCard } from "../../../components/MarketCard";
 
 export default function LeagueDetailPage() {
@@ -48,8 +45,14 @@ export default function LeagueDetailPage() {
     async function load() {
       setLoadingMarkets(true);
       try {
-        const data = await fetchActiveMarkets(4);
-        setMarkets(data);
+        // For demo purposes: pull recently closed markets via a server-side
+        // API route so we avoid browser CORS issues with Gamma.
+        const res = await fetch("/api/closed-markets");
+        if (!res.ok) {
+          throw new Error("Failed to load closed markets");
+        }
+        const json = (await res.json()) as { markets: GammaMarket[] };
+        setMarkets(json.markets ?? []);
       } catch (e) {
         console.error("League markets load error", e);
         setMarkets([]);
@@ -110,81 +113,121 @@ export default function LeagueDetailPage() {
       </div>
 
       <div className="card space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold">This week&apos;s markets</span>
-          <span className="text-xs text-slate-400">
-            From Polymarket Gamma API
-          </span>
-        </div>
+        {markets.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-semibold">Featured Polymarket markets</span>
+              <span className="text-xs text-slate-400">
+                From Polymarket Gamma API
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              These markets are powered by Polymarket. Pick one to submit a
+              forecast and then walk through how your league score updates on
+              Base after resolution.
+            </p>
+          </>
+        ) : (
+          <div className="text-sm font-semibold">
+            Markets for this league
+          </div>
+        )}
         {loadingMarkets && (
           <div className="text-xs text-slate-400">Loading markets…</div>
         )}
-        {!loadingMarkets && markets.length === 0 && (
-          <div className="text-xs text-slate-400">
-            No open markets returned right now. Try again shortly.
-          </div>
-        )}
-        <div className="grid gap-3">
-          {markets.map((m) => (
-            <MarketCard
-              key={m.conditionId}
-              market={m}
-              footer={
-                <button
-                  type="button"
-                  className="text-xs px-2 py-1 border border-slate-700 rounded hover:bg-slate-800"
-                  onClick={() =>
-                    router.push(
-                      `/leagues/${leagueId.toString()}/predict?conditionId=${
-                        m.conditionId
-                      }`
-                    )
+        {markets.length > 0 ? (
+          <>
+            <div className="grid gap-3">
+              {markets.map((m) => (
+                <MarketCard
+                  key={m.conditionId}
+                  market={m}
+                  footer={
+                    <button
+                      type="button"
+                      className="w-full text-xs px-2 py-2 border border-slate-700 rounded hover:bg-slate-800 font-medium"
+                      onClick={() =>
+                        router.push(
+                          `/leagues/${leagueId.toString()}/predict?conditionId=${
+                            m.conditionId
+                          }`
+                        )
+                      }
+                      disabled={!address}
+                    >
+                      {address
+                        ? "Make prediction in this league"
+                        : "Connect wallet to forecast"}
+                    </button>
                   }
-                  disabled={!address}
-                >
-                  {address
-                    ? "Make prediction in this league"
-                    : "Connect wallet to forecast"}
-                </button>
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="mt-2 w-full rounded-md bg-emerald-500 text-slate-900 text-sm font-semibold py-2 hover:bg-emerald-400"
+              disabled={!address}
+              onClick={() =>
+                router.push(
+                  `/leagues/${leagueId.toString()}/predict?conditionId=${
+                    markets[0].conditionId
+                  }`
+                )
               }
-            />
-          ))}
-        </div>
+            >
+              {address
+                ? "Start a prediction with the first market"
+                : "Connect wallet to start predicting"}
+            </button>
+          </>
+        ) : (
+          !loadingMarkets && (
+            <div className="text-xs text-slate-400">
+              No Polymarket markets available for this league right now. Use the
+              Markets page to browse and select a market for your demo.
+            </div>
+          )
+        )}
       </div>
 
-      <div className="card space-y-3">
-        <div className="font-semibold text-sm">
-          Make a forecast for this league
-        </div>
-        <p className="text-xs text-slate-400">
-          Or paste a Polymarket{" "}
-          <span className="font-mono">conditionId</span> directly.
-        </p>
+      {/* Optional advanced flow: paste a conditionId directly.
+          Hidden from main demo flow to keep UX streamlined. */}
+      {false && (
+        <div className="card space-y-3">
+          <div className="font-semibold text-sm">
+            Advanced: forecast by conditionId
+          </div>
+          <p className="text-xs text-slate-400">
+            Paste a Polymarket <span className="font-mono">conditionId</span>{" "}
+            if you already have one.
+          </p>
 
-        <form
-          className="flex flex-col gap-2 sm:flex-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!conditionId) return;
-            router.push(
-              `/leagues/${leagueId.toString()}/predict?conditionId=${conditionId}`
-            );
-          }}
-        >
-          <input
-            className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono"
-            placeholder="0x9b94...ca256"
-            value={conditionId}
-            onChange={(e) => setConditionId(e.target.value.trim())}
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 rounded bg-emerald-500 text-slate-900 text-sm font-semibold"
+          <form
+            className="flex flex-col gap-2 sm:flex-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!conditionId) return;
+              router.push(
+                `/leagues/${leagueId.toString()}/predict?conditionId=${conditionId}`
+              );
+            }}
           >
-            Continue
-          </button>
-        </form>
-      </div>
+            <input
+              className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono"
+              placeholder="0x9b94...ca256"
+              value={conditionId}
+              onChange={(e) => setConditionId(e.target.value.trim())}
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded bg-emerald-500 text-slate-900 text-sm font-semibold"
+            >
+              Continue
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

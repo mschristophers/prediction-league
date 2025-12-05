@@ -1,6 +1,10 @@
 const GAMMA_BASE_URL =
   process.env.POLYMARKET_GAMMA_URL ?? "https://gamma-api.polymarket.com";
 
+// Demo window: closed markets between 2025-10-01 and 2025-10-31.
+export const DEMO_END_DATE_MIN = "2025-10-01T00:00:00Z";
+export const DEMO_END_DATE_MAX = "2025-10-31T23:59:59Z";
+
 export interface GammaMarket {
   id: string;
   question: string | null;
