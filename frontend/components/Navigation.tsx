@@ -37,13 +37,12 @@ export function Navigation() {
           </nav>
         </div>
         <Wallet>
-          <ConnectWallet />
+          <ConnectWallet className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed" />
           <WalletDropdown>
-            <WalletDropdownDisconnect />
+            <WalletDropdownDisconnect className="w-full justify-center rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-100 transition-all duration-200 hover:bg-slate-800 hover:border-red-500/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950" />
           </WalletDropdown>
         </Wallet>
       </div>
     </header>
   );
 }
-
