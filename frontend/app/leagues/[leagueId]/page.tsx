@@ -1,34 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { predictionLeagueConfig } from "../../../lib/contract";
 import { LeagueCard } from "../../../components/LeagueCard";
+import {
+  fetchActiveMarkets,
+  GammaMarket,
+} from "../../../lib/polymarket";
+import { MarketCard } from "../../../components/MarketCard";
 
 export default function LeagueDetailPage() {
   const params = useParams<{ leagueId: string }>();
   const leagueId = BigInt(params.leagueId);
   const router = useRouter();
+  const search = useSearchParams();
+  const preselectedConditionId = search.get("conditionId") || "";
+
   const { address } = useAccount();
 
   const { data: league } = useReadContract({
     ...predictionLeagueConfig,
     functionName: "leagues",
-    args: [leagueId]
+    args: [leagueId],
   });
 
-  const { data: score } = useReadContract({
+  const { data: rawScore } = useReadContract({
     ...predictionLeagueConfig,
     functionName: "getScore",
     args: [
       leagueId,
-      address ?? "0x0000000000000000000000000000000000000000"
+      address ?? "0x0000000000000000000000000000000000000000",
     ],
-    query: { enabled: Boolean(address) }
+    query: { enabled: Boolean(address) },
   });
 
-  const [conditionId, setConditionId] = useState("");
+  const [conditionId, setConditionId] = useState(preselectedConditionId);
+  const [markets, setMarkets] = useState<GammaMarket[]>([]);
+  const [loadingMarkets, setLoadingMarkets] = useState(false);
+
+  useEffect(() => {
+    setConditionId(preselectedConditionId);
+  }, [preselectedConditionId]);
+
+  useEffect(() => {
+    async function load() {
+      setLoadingMarkets(true);
+      try {
+        const data = await fetchActiveMarkets(4);
+        setMarkets(data);
+      } catch (e) {
+        console.error("League markets load error", e);
+        setMarkets([]);
+      } finally {
+        setLoadingMarkets(false);
+      }
+    }
+    load();
+  }, []);
 
   if (!league) {
     return <div className="text-sm">Loading league…</div>;
@@ -45,28 +75,80 @@ export default function LeagueDetailPage() {
     return <div className="text-sm">League not found.</div>;
   }
 
+  const score = (rawScore ?? 0n) as bigint;
+
   return (
     <div className="space-y-4">
       <LeagueCard id={id} name={name} creator={creator} />
 
       <div className="card text-sm space-y-2">
-        <div className="font-semibold">Your score</div>
+        <div className="font-semibold">Your league score</div>
         {address ? (
-          <div>
-            Current score:{" "}
-            <span className="font-mono">
-              {score !== undefined ? score.toString() : "0"}
-            </span>
-          </div>
+          <>
+            <div>
+              Address:{" "}
+              <span className="font-mono text-xs">
+                {address.slice(0, 6)}…{address.slice(-4)}
+              </span>
+            </div>
+            <div>
+              Brier penalty total:{" "}
+              <span className="font-mono">{score.toString()}</span>
+            </div>
+            <div className="text-xs text-slate-400">
+              Lower (less negative) is better. An off-chain script computes
+              penalties using the Brier score and calls{" "}
+              <span className="font-mono">updateScore</span> after markets
+              resolve.
+            </div>
+          </>
         ) : (
           <div className="text-slate-400">
-            Connect wallet to see your score in this league.
+            Connect your wallet to see your score in this league.
           </div>
         )}
-        <div className="text-xs text-slate-400">
-          Scores are updated when markets resolve via an off-chain script that
-          computes Brier penalties and calls{" "}
-          <span className="font-mono">updateScore</span>.
+      </div>
+
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold">This week&apos;s markets</span>
+          <span className="text-xs text-slate-400">
+            From Polymarket Gamma API
+          </span>
+        </div>
+        {loadingMarkets && (
+          <div className="text-xs text-slate-400">Loading markets…</div>
+        )}
+        {!loadingMarkets && markets.length === 0 && (
+          <div className="text-xs text-slate-400">
+            No open markets returned right now. Try again shortly.
+          </div>
+        )}
+        <div className="grid gap-3">
+          {markets.map((m) => (
+            <MarketCard
+              key={m.conditionId}
+              market={m}
+              footer={
+                <button
+                  type="button"
+                  className="text-xs px-2 py-1 border border-slate-700 rounded hover:bg-slate-800"
+                  onClick={() =>
+                    router.push(
+                      `/leagues/${leagueId.toString()}/predict?conditionId=${
+                        m.conditionId
+                      }`
+                    )
+                  }
+                  disabled={!address}
+                >
+                  {address
+                    ? "Make prediction in this league"
+                    : "Connect wallet to forecast"}
+                </button>
+              }
+            />
+          ))}
         </div>
       </div>
 
@@ -75,15 +157,8 @@ export default function LeagueDetailPage() {
           Make a forecast for this league
         </div>
         <p className="text-xs text-slate-400">
-          Step 1: Go to the{" "}
-          <a href="/markets" className="underline">
-            Markets
-          </a>{" "}
-          page, pick a Polymarket market and copy its{" "}
-          <span className="font-mono">conditionId</span>.
-        </p>
-        <p className="text-xs text-slate-400">
-          Step 2: Paste it below and continue to the forecast page.
+          Or paste a Polymarket{" "}
+          <span className="font-mono">conditionId</span> directly.
         </p>
 
         <form
@@ -98,7 +173,7 @@ export default function LeagueDetailPage() {
         >
           <input
             className="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono"
-            placeholder="0x9b946f54f3428aafc308c33aa04a943fe13a011bdac9a9b66e1ba16c416ca256"
+            placeholder="0x9b94...ca256"
             value={conditionId}
             onChange={(e) => setConditionId(e.target.value.trim())}
           />

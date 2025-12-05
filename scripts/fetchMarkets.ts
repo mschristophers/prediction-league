@@ -15,7 +15,7 @@ async function main() {
     const limit =
         process.env.MARKET_LIMIT != null
         ? Number(process.env.MARKET_LIMIT)
-        : 5;
+        : 10;
 
     const dateFilters: DateRangeFilters = {};
     if (process.env.GAMMA_START_DATE_MIN) {

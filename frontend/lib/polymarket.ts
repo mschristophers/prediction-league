@@ -9,8 +9,8 @@ export interface GammaMarket {
   endDate: string | null;
   startDate: string | null;
   closed?: boolean | null;
-  outcomes?: string | null; // e.g. "Yes|No" or "Yes,No"
-  outcomePrices?: string | null; // e.g. "0.123,0.877"
+  outcomes?: string | null;        // e.g. "Yes|No" or "Yes,No"
+  outcomePrices?: string | null;   // e.g. "0.123,0.877"
   umaResolutionStatus?: string | null;
 }
 
@@ -35,6 +35,7 @@ function toIsoString(value?: Date | string): string | undefined {
   return value;
 }
 
+/** Low-level helper: flexible fetch from Gamma /markets */
 async function fetchMarkets(
   options: FetchMarketsOptions = {}
 ): Promise<GammaMarket[]> {
@@ -83,6 +84,7 @@ async function fetchMarkets(
   return json;
 }
 
+/** Convenience: open markets (closed = false) */
 export function fetchActiveMarkets(
   limit = 20,
   dateFilters: DateRangeFilters = {}
@@ -90,6 +92,7 @@ export function fetchActiveMarkets(
   return fetchMarkets({ status: "open", limit, ...dateFilters });
 }
 
+/** Convenience: closed markets (closed = true) */
 export function fetchClosedMarkets(
   limit = 20,
   dateFilters: DateRangeFilters = {}
@@ -97,6 +100,7 @@ export function fetchClosedMarkets(
   return fetchMarkets({ status: "closed", limit, ...dateFilters });
 }
 
+/** Fetch one market by conditionId (Gamma condition_ids filter) */
 export async function fetchMarketByConditionId(
   conditionId: string
 ): Promise<GammaMarket | null> {
@@ -118,8 +122,10 @@ export async function fetchMarketByConditionId(
   return json[0] ?? null;
 }
 
+/** Outcomes string → string[] (handles "Yes|No" or "Yes,No") */
 export function parseOutcomes(market: GammaMarket): string[] {
   if (!market.outcomes) return [];
+
   const raw = market.outcomes;
   const sep = raw.includes("|") ? "|" : ",";
   return raw
@@ -128,6 +134,7 @@ export function parseOutcomes(market: GammaMarket): string[] {
     .filter(Boolean);
 }
 
+/** outcomePrices string → number[] */
 export function parseOutcomePrices(market: GammaMarket): number[] {
   if (!market.outcomePrices) return [];
   return market.outcomePrices
