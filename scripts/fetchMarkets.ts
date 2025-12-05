@@ -1,41 +1,86 @@
 import "dotenv/config";
-import { fetchActiveMarkets, parseOutcomes, parseOutcomePrices } from "./polymarket";
+import {
+    fetchActiveMarkets,
+    fetchClosedMarkets,
+    parseOutcomes,
+    parseOutcomePrices,
+    DateRangeFilters,
+} from "./polymarket";
 
 async function main() {
-    const limit = Number(process.env.POLYMARKET_MARKETS_LIMIT ?? "20");
-    const topicFilter = (process.env.POLYMARKET_TOPIC ?? "").toLowerCase();
+    const statusEnv = (process.env.MARKET_STATUS ?? "open").toLowerCase();
+    const status: "open" | "closed" =
+        statusEnv === "closed" ? "closed" : "open";
 
-    const markets = await fetchActiveMarkets(limit);
+    const limit =
+        process.env.MARKET_LIMIT != null
+        ? Number(process.env.MARKET_LIMIT)
+        : 5;
 
-    const filtered = markets.filter((m) => {
-        if (!topicFilter) return true;
-        const q = (m.question ?? "").toLowerCase();
-        return q.includes(topicFilter);
-    });
+    const dateFilters: DateRangeFilters = {};
+    if (process.env.GAMMA_START_DATE_MIN) {
+        dateFilters.startDateMin = process.env.GAMMA_START_DATE_MIN;
+    }
+    if (process.env.GAMMA_START_DATE_MAX) {
+        dateFilters.startDateMax = process.env.GAMMA_START_DATE_MAX;
+    }
+    if (process.env.GAMMA_END_DATE_MIN) {
+        dateFilters.endDateMin = process.env.GAMMA_END_DATE_MIN;
+    }
+    if (process.env.GAMMA_END_DATE_MAX) {
+        dateFilters.endDateMax = process.env.GAMMA_END_DATE_MAX;
+    }
 
-    console.log(`Found ${filtered.length} active markets (showing up to ${limit}):\n`);
+    const fetchFn =
+        status === "open" ? fetchActiveMarkets : fetchClosedMarkets;
 
-    for (const m of filtered) {
-        const outcomes = parseOutcomes(m.outcomes);
-        const prices = parseOutcomePrices(m.outcomePrices);
-        const yesProb = prices.length > 0 ? prices[0] : undefined;
+    console.log(
+        `Fetching ${status.toUpperCase()} markets from Gamma (limit=${limit})...`
+    );
+    if (Object.keys(dateFilters).length > 0) {
+        console.log("Date filters:", dateFilters);
+    }
+
+    const markets = await fetchFn(limit, dateFilters);
+
+    console.log(
+        `Found ${markets.length} markets (showing up to ${limit}):\n`
+    );
+
+    markets.slice(0, limit).forEach((m, idx) => {
+        const outcomes = parseOutcomes(m);
+        const prices = parseOutcomePrices(m);
+
+        const yesPrice = prices[0];
+        const impliedYesPct =
+        typeof yesPrice === "number"
+            ? (yesPrice * 100).toFixed(1)
+            : "n/a";
 
         console.log("––––––––––––––––––––––––");
-        console.log(`Question:      ${m.question}`);
+        console.log(`[#${idx + 1}] Question:      ${m.question}`);
         console.log(`ConditionId:   ${m.conditionId}`);
         console.log(`Slug:          ${m.slug}`);
-        if (m.endDateIso) {
-        console.log(`End date:      ${m.endDateIso}`);
-        }
-        console.log(`Outcomes:      ${outcomes.join(" | ") || "(unknown)"}`);
-        if (prices.length > 0) {
-        console.log(`OutcomePrices: ${prices.map((p) => p.toFixed(3)).join(" , ")}`);
-        if (yesProb !== undefined) {
-            console.log(`Implied YES %: ${(yesProb * 100).toFixed(1)}% (assuming index 0 = YES)`);
-        }
-        }
-        console.log("");
-    }
+        console.log(`Start date:    ${m.startDate}`);
+        console.log(`End date:      ${m.endDate}`);
+        console.log(`Closed:        ${m.closed ?? "unknown"}`);
+        console.log(
+        `Outcomes:      ${
+            outcomes.length ? outcomes.join(" | ") : "n/a"
+        }`
+        );
+        console.log(
+        `OutcomePrices: ${
+            prices.length ? prices.join(" , ") : "n/a"
+        }`
+        );
+        console.log(
+        `Implied YES %: ${
+            impliedYesPct !== "n/a" ? `${impliedYesPct}%` : "n/a"
+        }`
+        );
+        console.log();
+    });
 
     console.log(
         "Use one of the ConditionIds above as MARKET_CONDITION_ID in your .env for the league."
