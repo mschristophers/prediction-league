@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Wallet,
@@ -5,55 +7,36 @@ import {
   WalletDropdown,
   WalletDropdownDisconnect,
 } from "@coinbase/onchainkit/wallet";
-import { Identity, Avatar, Name, Address } from "@coinbase/onchainkit/identity";
 
 export function NavBar() {
   return (
-    <header className="border-b bg-background">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        {/* Brand / title */}
-        <Link href="/" className="text-lg font-semibold">
-          Prediction League
-        </Link>
-
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/leagues"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Leagues
-          </Link>
-          <Link
-            href="/markets"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Markets
+    <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="font-semibold text-lg">Prediction League</span>
           </Link>
 
-          {/* OnchainKit wallet */}
-          <Wallet>
-            {/* Connect button (shows when not connected) */}
-            <ConnectWallet className="rounded-full border px-3 py-1 text-sm">
-              Connect
-            </ConnectWallet>
+          <nav className="hidden md:flex items-center gap-4 text-sm text-slate-300">
+            <Link href="/leagues" className="hover:text-white">
+              Leagues
+            </Link>
+            <Link href="/leagues/create" className="hover:text-white">
+              Create league
+            </Link>
+            <Link href="/markets" className="hover:text-white">
+              Markets
+            </Link>
+          </nav>
+        </div>
 
-            {/* Dropdown (shows when connected) */}
-            <WalletDropdown>
-              <Identity className="flex items-center gap-2 px-3 py-2">
-                <Avatar />
-                <div className="flex flex-col">
-                  <Name className="text-sm font-medium" />
-                  <Address className="text-xs text-muted-foreground" />
-                </div>
-              </Identity>
-
-              <WalletDropdownDisconnect />
-            </WalletDropdown>
-          </Wallet>
-        </nav>
+        <Wallet>
+          <ConnectWallet />
+          <WalletDropdown>
+            <WalletDropdownDisconnect />
+          </WalletDropdown>
+        </Wallet>
       </div>
     </header>
   );
 }
-
-export default NavBar;

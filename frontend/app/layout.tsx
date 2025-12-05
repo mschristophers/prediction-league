@@ -1,26 +1,31 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Web3Providers } from "../lib/wagmiClient";
-import { NavBar } from "../components/NavBar";
+import { Inter } from "next/font/google";
+import { Providers } from "./providers";
+import { Navigation } from "../components/Navigation";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Prediction League",
+  title: "Prediction League - Forecast & Compete",
   description:
-    "A Base Sepolia dApp that turns Polymarket markets into a forecasting league for groups."
+    "Create prediction leagues, forecast outcomes on Polymarket markets, and compete with friends.",
 };
 
 export default function RootLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen">
-        <Web3Providers>
-          <NavBar />
-          <main className="max-w-4xl mx-auto px-4 py-6">{children}</main>
-        </Web3Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className + " bg-slate-950 text-slate-50"}>
+        <Providers>
+          <Navigation />
+          <main className="min-h-screen">
+            <div className="mx-auto max-w-5xl px-4 py-8">{children}</div>
+          </main>
+        </Providers>
       </body>
     </html>
   );

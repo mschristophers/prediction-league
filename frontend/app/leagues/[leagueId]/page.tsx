@@ -1,16 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useConnection, useReadContract } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { predictionLeagueConfig } from "../../../lib/contract";
 import { LeagueCard } from "../../../components/LeagueCard";
-import { useState } from "react";
 
 export default function LeagueDetailPage() {
   const params = useParams<{ leagueId: string }>();
   const leagueId = BigInt(params.leagueId);
   const router = useRouter();
-  const { address } = useConnection();
+  const { address } = useAccount();
 
   const { data: league } = useReadContract({
     ...predictionLeagueConfig,
@@ -21,7 +21,10 @@ export default function LeagueDetailPage() {
   const { data: score } = useReadContract({
     ...predictionLeagueConfig,
     functionName: "getScore",
-    args: [leagueId, address ?? "0x0000000000000000000000000000000000000000"],
+    args: [
+      leagueId,
+      address ?? "0x0000000000000000000000000000000000000000"
+    ],
     query: { enabled: Boolean(address) }
   });
 
@@ -62,7 +65,8 @@ export default function LeagueDetailPage() {
         )}
         <div className="text-xs text-slate-400">
           Scores are updated when markets resolve via an off-chain script that
-          computes Brier penalties and calls <span className="font-mono">updateScore</span>.
+          computes Brier penalties and calls{" "}
+          <span className="font-mono">updateScore</span>.
         </div>
       </div>
 
