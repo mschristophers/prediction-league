@@ -43,33 +43,42 @@ export function LeagueLeaderboard({
   currentUserAddress,
   currentUserScore,
 }: LeagueLeaderboardProps) {
-  let entries: LeaderboardEntry[] = [...MOCK_ENTRIES];
+  const hasUser =
+    typeof currentUserAddress === "string" && currentUserAddress.length > 0;
+  const hasNonZeroScore =
+    typeof currentUserScore === "bigint" && currentUserScore !== 0n;
 
-  if (currentUserAddress) {
-    const short =
-      currentUserAddress.slice(0, 6) +
-      "…" +
-      currentUserAddress.slice(-4);
-    const scoreNumber =
-      currentUserScore !== undefined ? Number(currentUserScore) : 0;
-
-    const existingIndex = entries.findIndex(
-      (e) => e.address.toLowerCase() === short.toLowerCase()
+  // Only show the populated leaderboard once the viewer has actually
+  // made at least one prediction (non-zero score). Until then, keep it empty.
+  if (!hasUser || !hasNonZeroScore) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">League leaderboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-slate-400">
+            No predictions in this league yet. Make the first one to open the
+            leaderboard.
+          </p>
+        </CardContent>
+      </Card>
     );
+  }
 
-    const youEntry: LeaderboardEntry = {
+  const short =
+    currentUserAddress.slice(0, 6) + "…" + currentUserAddress.slice(-4);
+  const scoreNumber = Number(currentUserScore);
+
+  let entries: LeaderboardEntry[] = [
+    {
       address: short,
       displayName: "You",
       score: scoreNumber,
       isYou: true,
-    };
-
-    if (existingIndex >= 0) {
-      entries[existingIndex] = youEntry;
-    } else {
-      entries = [youEntry, ...entries];
-    }
-  }
+    },
+    ...MOCK_ENTRIES,
+  ];
 
   // Sort so "better" (less negative) penalties appear first.
   const sorted = [...entries].sort((a, b) => b.score - a.score);
