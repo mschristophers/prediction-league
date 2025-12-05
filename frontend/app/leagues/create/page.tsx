@@ -62,8 +62,7 @@ export default function CreateLeaguePage() {
             Create a Prediction League
           </h1>
           <p className="text-sm text-slate-300">
-            Deploy a league on Base and invite your group to forecast
-            Polymarket markets together.
+            Set up a league for your friends, community, or team to compare their predictions.
           </p>
         </div>
 
@@ -88,14 +87,13 @@ export default function CreateLeaguePage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
-                  placeholder="Optional: describe what you&apos;ll be forecasting."
+                  placeholder="Optional: describe what this league focuses on."
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
                 <p className="text-xs text-slate-400">
-                  This description is off-chain for now; scores and forecasts
-                  live on Base.
+                  Optional: add a short note so people know what this league is about.
                 </p>
               </div>
 
@@ -114,7 +112,7 @@ export default function CreateLeaguePage() {
         {createdId && (
           <Card className="border-emerald-500/30 bg-emerald-500/5">
             <CardContent className="pt-4 space-y-2 text-sm text-slate-200">
-              <div>League created on Base Sepolia.</div>
+              <div>Your league is live.</div>
               <div>
                 League ID:{" "}
                 <span className="font-mono text-emerald-400">

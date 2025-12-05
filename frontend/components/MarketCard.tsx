@@ -23,7 +23,7 @@ export function MarketCard({ market, footer }: Props) {
       </div>
       <div className="flex justify-between items-center text-sm">
         <span>
-          Implied YES:{" "}
+          Market odds (YES):{" "}
           <span className="font-semibold">{impliedYes}%</span>
         </span>
         <button
@@ -31,7 +31,7 @@ export function MarketCard({ market, footer }: Props) {
           className="text-xs px-2 py-1 border border-slate-700 rounded hover:bg-slate-800"
           onClick={() => navigator.clipboard.writeText(market.conditionId)}
         >
-          Copy conditionId
+          Copy Market ID
         </button>
       </div>
       {footer && <div className="pt-1">{footer}</div>}

@@ -20,7 +20,7 @@ export default async function PredictPage({
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">
-        League {leagueId.toString()} – Make a forecast
+        League {leagueId.toString()} – New prediction
       </h1>
 
       <div className="card space-y-3">
@@ -32,8 +32,8 @@ export default async function PredictPage({
 
         {!conditionId && (
           <div className="text-xs text-slate-400">
-            No conditionId provided. Go back to the league page and select a
-            market first.
+            No market selected. Go back to your league and choose a market to
+            predict.
           </div>
         )}
 

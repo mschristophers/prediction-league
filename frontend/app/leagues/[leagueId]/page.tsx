@@ -86,7 +86,7 @@ export default function LeagueDetailPage() {
       <LeagueCard id={id} name={name} creator={creator} />
 
       <div className="card text-sm space-y-2">
-        <div className="font-semibold">Your league score</div>
+        <div className="font-semibold">Your performance in this league</div>
         {address ? (
           <>
             <div>
@@ -96,14 +96,11 @@ export default function LeagueDetailPage() {
               </span>
             </div>
             <div>
-              Brier penalty total:{" "}
+              Score:{" "}
               <span className="font-mono">{score.toString()}</span>
             </div>
             <div className="text-xs text-slate-400">
-              Lower (less negative) is better. An off-chain script computes
-              penalties using the Brier score and calls{" "}
-              <span className="font-mono">updateScore</span> after markets
-              resolve.
+              Higher scores mean your predictions have been closer to what actually happened across the markets used in this league.
             </div>
           </>
         ) : (
@@ -128,9 +125,7 @@ export default function LeagueDetailPage() {
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              These markets are powered by Polymarket. Pick one to submit a
-              forecast and then walk through how your league score updates on
-              Base after resolution.
+              These markets come from Polymarket. Pick one to make a prediction and see how it affects your place in the league.
             </p>
           </>
         ) : (

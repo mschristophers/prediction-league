@@ -31,7 +31,8 @@ export default function HomePage() {
           </h1>
           <p className="mx-auto max-w-xl text-base text-slate-300 md:text-lg">
             Spin up a league on Base, submit 0–100% forecasts on Polymarket
-            markets, and let an off-chain script keep score for your group.
+            markets, and turn your group&apos;s intuition into a live,
+            trackable leaderboard.
           </p>
           <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
             <Button size="lg" className="text-base px-8">
@@ -58,8 +59,8 @@ export default function HomePage() {
               How it works
             </h2>
             <p className="text-sm text-slate-300 md:text-base">
-              A lightweight league system that keeps the contract simple and
-              uses Polymarket as the oracle.
+              A simple league format that turns real Polymarket markets into
+              friendly competition.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -70,8 +71,8 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-semibold">Create a league</h3>
                 <p className="text-sm text-slate-300">
-                  Deploy a league on Base for your DAO, class, or group chat in
-                  a single transaction.
+                  Launch a league for your DAO, class, or group chat in a single
+                  click and invite people to join.
                 </p>
               </CardContent>
             </Card>
@@ -82,8 +83,8 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-semibold">Submit forecasts</h3>
                 <p className="text-sm text-slate-300">
-                  Paste Polymarket conditionIds, pick probabilities on-chain,
-                  and update forecasts as markets move.
+                  Browse markets, pick a question, and slide in your
+                  probabilities instead of just guessing yes or no.
                 </p>
               </CardContent>
             </Card>
@@ -94,8 +95,8 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-semibold">Track scores</h3>
                 <p className="text-sm text-slate-300">
-                  An off-chain script calls the contract to set outcomes and
-                  update Brier scores per user.
+                  Watch a shared leaderboard update as markets resolve and your
+                  league discovers who really forecasts well.
                 </p>
               </CardContent>
             </Card>
@@ -134,7 +135,8 @@ export default function HomePage() {
               </h2>
               <p className="max-w-xl text-sm text-slate-300 md:text-base">
                 Spin up a league, connect your wallet, and start logging
-                probabilistic predictions tied to Polymarket markets.
+                predictions that turn Polymarket markets into bragging rights
+                for your group.
               </p>
               <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                 <Button size="lg" className="text-base px-8">

@@ -54,7 +54,7 @@ export function PredictionForm({ leagueId, conditionId }: Props) {
 
       <div>
         <label className="block text-sm mb-1">
-          Your forecast (YES probability)
+          How likely do you think &quot;YES&quot; is?
         </label>
         <input
           type="range"
@@ -65,7 +65,9 @@ export function PredictionForm({ leagueId, conditionId }: Props) {
           className="w-full"
         />
         <div className="text-sm mt-1">
-          <span className="font-semibold">{forecast}%</span> chance of YES
+          You&apos;re saying there&apos;s a{" "}
+          <span className="font-semibold">{forecast}%</span> chance this
+          resolves YES.
         </div>
       </div>
 

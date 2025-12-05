@@ -85,7 +85,7 @@ export function LeagueLeaderboard({
             <TableRow>
               <TableHead className="w-12">Rank</TableHead>
               <TableHead>Participant</TableHead>
-              <TableHead className="text-right">Brier score</TableHead>
+              <TableHead className="text-right">Score</TableHead>
               <TableHead className="w-28 text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,11 +114,8 @@ export function LeagueLeaderboard({
                   {entry.score}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] bg-slate-800 text-slate-100"
-                  >
-                    Pending resolution
+                  <Badge variant="secondary" className="text-[10px] bg-slate-800 text-slate-100">
+                    Live
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -126,11 +123,10 @@ export function LeagueLeaderboard({
           </TableBody>
         </Table>
         <p className="mt-3 text-[11px] text-slate-500">
-          Scores are Brier penalties aggregated per league. An off-chain script
-          reads Polymarket outcomes and updates these values on Base.
+          Scores reflect how accurate each person&apos;s predictions have been across the
+          markets used in this league.
         </p>
       </CardContent>
     </Card>
   );
 }
-

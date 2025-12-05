@@ -36,7 +36,7 @@ export default function LeaguesPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Leagues</h1>
             <p className="text-sm text-slate-300">
-              Browse leagues created on the Prediction League contract.
+              Leagues where groups compare how well they forecast.
             </p>
           </div>
           <Button size="lg" asChild>
