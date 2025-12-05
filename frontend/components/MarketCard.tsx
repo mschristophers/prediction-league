@@ -1,0 +1,35 @@
+import { GammaMarket } from "../lib/polymarket";
+
+interface Props {
+  market: GammaMarket;
+}
+
+export function MarketCard({ market }: Props) {
+  const yesPrice = market.outcomePrices?.[0] ?? 0;
+  const impliedYes = (yesPrice * 100).toFixed(1);
+
+  return (
+    <div className="card space-y-2">
+      <div className="text-sm text-slate-400">{market.slug}</div>
+      <div className="font-medium">{market.question}</div>
+      <div className="text-xs text-slate-400">
+        Ends: {new Date(market.endDate).toLocaleString()}
+      </div>
+      <div className="flex justify-between items-center text-sm">
+        <span>
+          Implied YES:{" "}
+          <span className="font-semibold">{impliedYes}%</span>
+        </span>
+        <button
+          type="button"
+          className="text-xs px-2 py-1 border border-slate-700 rounded hover:bg-slate-800"
+          onClick={() =>
+            navigator.clipboard.writeText(market.conditionId)
+          }
+        >
+          Copy conditionId
+        </button>
+      </div>
+    </div>
+  );
+}
