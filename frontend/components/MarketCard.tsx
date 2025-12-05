@@ -1,11 +1,13 @@
-import { GammaMarket } from "../lib/polymarket";
+"use client";
+
+import { GammaMarket, parseOutcomePrices } from "../lib/polymarket";
 
 interface Props {
   market: GammaMarket;
 }
 
 export function MarketCard({ market }: Props) {
-  const yesPrice = market.outcomePrices?.[0] ?? 0;
+  const yesPrice = parseOutcomePrices(market)[0] ?? 0;
   const impliedYes = (yesPrice * 100).toFixed(1);
 
   return (
@@ -13,7 +15,9 @@ export function MarketCard({ market }: Props) {
       <div className="text-sm text-slate-400">{market.slug}</div>
       <div className="font-medium">{market.question}</div>
       <div className="text-xs text-slate-400">
-        Ends: {new Date(market.endDate).toLocaleString()}
+        {market.endDate
+          ? `Ends: ${new Date(market.endDate).toLocaleString()}`
+          : "End date not available"}
       </div>
       <div className="flex justify-between items-center text-sm">
         <span>

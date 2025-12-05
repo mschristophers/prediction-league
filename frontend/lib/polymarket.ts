@@ -1,63 +1,137 @@
-const GAMMA_BASE_URL = process.env.POLYMARKET_GAMMA_URL ?? "https://gamma-api.polymarket.com";
+const GAMMA_BASE_URL =
+  process.env.POLYMARKET_GAMMA_URL ?? "https://gamma-api.polymarket.com";
 
 export interface GammaMarket {
-  id: number;
-  question: string;
-  slug: string;
-  endDate: string;
-  closed: boolean;
+  id: string;
+  question: string | null;
   conditionId: string;
-  outcomePrices?: number[];
-  outcomes?: string[];
+  slug: string | null;
+  endDate: string | null;
+  startDate: string | null;
+  closed?: boolean | null;
+  outcomes?: string | null; // e.g. "Yes|No" or "Yes,No"
+  outcomePrices?: string | null; // e.g. "0.123,0.877"
+  umaResolutionStatus?: string | null;
 }
 
-interface GammaMarketsResponse {
-  markets: GammaMarket[];
+export type DateRangeFilters = {
+  startDateMin?: Date | string;
+  startDateMax?: Date | string;
+  endDateMin?: Date | string;
+  endDateMax?: Date | string;
+};
+
+type MarketStatus = "open" | "closed" | "all";
+
+interface FetchMarketsOptions extends DateRangeFilters {
+  status?: MarketStatus;
+  limit?: number;
+  offset?: number;
 }
 
-export async function fetchActiveMarkets(limit = 5): Promise<GammaMarket[]> {
+function toIsoString(value?: Date | string): string | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) return value.toISOString();
+  return value;
+}
+
+async function fetchMarkets(
+  options: FetchMarketsOptions = {}
+): Promise<GammaMarket[]> {
+  const {
+    status = "open",
+    limit = 20,
+    offset = 0,
+    startDateMin,
+    startDateMax,
+    endDateMin,
+    endDateMax,
+  } = options;
+
   const url = new URL("/markets", GAMMA_BASE_URL);
   url.searchParams.set("limit", String(limit));
-  url.searchParams.set("closed", "false");
+  url.searchParams.set("offset", String(offset));
 
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 60 } // cache for 60s on server
-  } as any);
-
-  if (!res.ok) {
-    console.error("Gamma API error", res.status, await res.text());
-    throw new Error("Failed to fetch markets");
+  if (status === "open") {
+    url.searchParams.set("closed", "false");
+  } else if (status === "closed") {
+    url.searchParams.set("closed", "true");
   }
 
-  const data = (await res.json()) as GammaMarketsResponse;
-  return data.markets ?? [];
-}
+  const sdMin = toIsoString(startDateMin);
+  if (sdMin) url.searchParams.set("start_date_min", sdMin);
 
-export async function fetchClosedMarkets(limit = 5): Promise<GammaMarket[]> {
-  const url = new URL("/markets", GAMMA_BASE_URL);
-  url.searchParams.set("limit", String(limit));
-  url.searchParams.set("closed", "true");
+  const sdMax = toIsoString(startDateMax);
+  if (sdMax) url.searchParams.set("start_date_max", sdMax);
+
+  const edMin = toIsoString(endDateMin);
+  if (edMin) url.searchParams.set("end_date_min", edMin);
+
+  const edMax = toIsoString(endDateMax);
+  if (edMax) url.searchParams.set("end_date_max", edMax);
 
   const res = await fetch(url.toString(), {
-    next: { revalidate: 3600 }
-  } as any);
+    next: { revalidate: status === "open" ? 60 : 3600 },
+  });
 
-  if (!res.ok) throw new Error("Failed to fetch closed markets");
-  const data = (await res.json()) as GammaMarketsResponse;
-  return data.markets ?? [];
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Gamma /markets ${res.status}: ${text}`);
+  }
+
+  const json = (await res.json()) as GammaMarket[];
+  return json;
+}
+
+export function fetchActiveMarkets(
+  limit = 20,
+  dateFilters: DateRangeFilters = {}
+): Promise<GammaMarket[]> {
+  return fetchMarkets({ status: "open", limit, ...dateFilters });
+}
+
+export function fetchClosedMarkets(
+  limit = 20,
+  dateFilters: DateRangeFilters = {}
+): Promise<GammaMarket[]> {
+  return fetchMarkets({ status: "closed", limit, ...dateFilters });
 }
 
 export async function fetchMarketByConditionId(
   conditionId: string
 ): Promise<GammaMarket | null> {
-  const url = new URL("/markets", GAMMA_BASE_URL);
-  url.searchParams.set("conditionId", conditionId);
+  if (!conditionId) return null;
 
-  const res = await fetch(url.toString());
+  const url = new URL("/markets", GAMMA_BASE_URL);
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("condition_ids", conditionId);
+
+  const res = await fetch(url.toString(), {
+    next: { revalidate: 300 },
+  });
   if (!res.ok) {
-    console.error("Gamma by conditionId error", res.status);
-    return null;
+    const text = await res.text();
+    throw new Error(`Gamma /markets by condition_ids ${res.status}: ${text}`);
   }
-  const data = (await res.json()) as GammaMarketsResponse;
-  return data.markets?.[0] ?? null;
+
+  const json = (await res.json()) as GammaMarket[];
+  return json[0] ?? null;
+}
+
+export function parseOutcomes(market: GammaMarket): string[] {
+  if (!market.outcomes) return [];
+  const raw = market.outcomes;
+  const sep = raw.includes("|") ? "|" : ",";
+  return raw
+    .split(sep)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function parseOutcomePrices(market: GammaMarket): number[] {
+  if (!market.outcomePrices) return [];
+  return market.outcomePrices
+    .split(",")
+    .map((s) => parseFloat(s.trim()))
+    .filter((n) => Number.isFinite(n));
 }

@@ -18,6 +18,12 @@ export default async function MarketsPage() {
         {markets.map((m) => (
           <MarketCard key={m.conditionId} market={m} />
         ))}
+        {markets.length === 0 && (
+          <div className="text-xs text-slate-400">
+            No open markets returned from Polymarket right now. Try again
+            shortly or adjust filters in scripts.
+          </div>
+        )}
       </div>
     </div>
   );

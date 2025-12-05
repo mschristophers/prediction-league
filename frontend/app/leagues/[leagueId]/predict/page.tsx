@@ -78,7 +78,9 @@ export default function PredictPage() {
             <div className="text-xs text-slate-400">{market.slug}</div>
             <div className="font-medium">{market.question}</div>
             <div className="text-xs text-slate-400">
-              Ends: {new Date(market.endDate).toLocaleString()}
+              {market.endDate
+                ? `Ends: ${new Date(market.endDate).toLocaleString()}`
+                : "End date not available"}
             </div>
             <div className="text-xs text-slate-400">
               ConditionId:{" "}
