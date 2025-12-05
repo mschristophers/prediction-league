@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { predictionLeagueConfig } from "../../../lib/contract";
 import { LeagueCard } from "../../../components/LeagueCard";
+import { LeagueLeaderboard } from "../../../components/LeagueLeaderboard";
 import { GammaMarket } from "../../../lib/polymarket";
 import { MarketCard } from "../../../components/MarketCard";
 
@@ -111,6 +112,11 @@ export default function LeagueDetailPage() {
           </div>
         )}
       </div>
+
+      <LeagueLeaderboard
+        currentUserAddress={address}
+        currentUserScore={rawScore}
+      />
 
       <div className="card space-y-3">
         {markets.length > 0 ? (
